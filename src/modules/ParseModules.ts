@@ -5,6 +5,7 @@ import { ModuleNodes } from "./nodes/ModuleNodes";
 import { ModuleChildNodes } from "./nodes/ModuleChildNodes";
 import { NestedNodes } from "./nodes/NestedNodes";
 
+import { FileUtils } from "../utils/FileUtils";
 /**
  * Parse modules in generated TypeDoc file
  */
@@ -17,27 +18,33 @@ export class ParseModules extends events.EventEmitter {
   }
 
   async run(): Promise<[]> {
+    const results: any = {
+      files: [],
+      modules: [],
+      refs: []
+    };
+
     try {
-      const results = {
-        files: [],
-        modules: [],
-        module_children: [],
-        signatures: [],
-        parameters: []
-      };
       for (const files of this.modulesArr) {
         new FileNodes(files, results).run();
         for (const modules of files.children) {
-          new ModuleNodes(modules, files.name, results).run();
-
-          for (const module_children of modules.children) {
-            new ModuleChildNodes(module_children, modules.name, results).run();
-            new NestedNodes(module_children, results).run();
+          const moduleNode = new ModuleNodes(modules, files.name).run();
+          await new NestedNodes(modules, moduleNode, results).run();
+          for (const moduleChildren of modules.children) {
+            const moduleChildNode = new ModuleChildNodes(moduleChildren).run();
+            await new NestedNodes(
+              moduleChildren,
+              moduleChildNode,
+              results
+            ).run();
+            moduleNode.moduleChildren.push(moduleChildNode);
           }
+          results.modules.push(moduleNode);
         }
       }
 
-      console.log(results);
+      // TEST OUTPUT (OUTPUT.JSON) TO VIEW SCHEMA
+      await FileUtils.createFile(JSON.stringify(results));
 
       return [];
     } catch (err) {

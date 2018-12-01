@@ -1,28 +1,38 @@
-import { NodeUtils } from "./NodeUtils";
 import { NestedNodes } from "./NestedNodes";
+import { TypeNodes } from "./TypeNodes";
 
 export class ParameterNodes {
   node: any;
   results: any;
 
-  constructor(nodes: any, results: any) {
-    this.node = nodes;
+  constructor(node: any, results: any) {
+    this.node = node;
     this.results = results;
   }
 
-  run() {
+  private async handleParams(param: any) {
+    const obj: any = {
+      name: param.name
+    };
+
+    await new TypeNodes(this.results).run(obj, param);
+    await new NestedNodes(param, obj, this.results).run();
+    return obj;
+  }
+
+  run(): Promise<{}> {
     const parameters = this.node["parameters"];
+    return new Promise(async (resolve, reject) => {
+      try {
+        const resultsArr: any = [];
+        for (const param of parameters) {
+          resultsArr.push(await this.handleParams(param));
+        }
 
-    for (const param of parameters) {
-      const obj = {
-        parent: this.node.name,
-        parentKind: this.node.kindString,
-        name: param.name
-      };
-
-      this.results.parameters.push(obj);
-
-      new NestedNodes(param, this.results).run();
-    }
+        resolve(resultsArr);
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 }

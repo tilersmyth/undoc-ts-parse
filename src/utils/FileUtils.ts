@@ -1,4 +1,6 @@
 import * as fs from "fs";
+import * as path from "path";
+import mkdirp = require("mkdirp");
 
 /**
  * Command line utils functions.
@@ -18,6 +20,31 @@ export class FileUtils {
     const root = FileUtils.rootDirectory();
     return fs.createReadStream(`${root}/${filePath}`, {
       encoding: "utf8"
+    });
+  }
+
+  /**
+   * HERE DOWN IS ONLY USED FOR TESTING OUTPUT (OUTPUT.JSON)
+   */
+  static createDirectories(directory: string) {
+    return new Promise((ok, fail) =>
+      mkdirp(directory, (err: any) => (err ? fail(err) : ok()))
+    );
+  }
+
+  static async createFile(
+    content: string,
+    override: boolean = true
+  ): Promise<void> {
+    await FileUtils.createDirectories(path.dirname(".undoc/output.json"));
+    return new Promise<void>((ok, fail) => {
+      const root = FileUtils.rootDirectory();
+      if (override === false && fs.existsSync(`${root}/.undoc/output.json`))
+        return ok();
+
+      fs.writeFile(`${root}/.undoc/output.json`, content, err =>
+        err ? fail(err) : ok()
+      );
     });
   }
 }

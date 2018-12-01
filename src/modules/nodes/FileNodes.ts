@@ -10,11 +10,15 @@ export class FileNodes {
   }
 
   run() {
-    const obj = {
-      name: this.node.name,
-      path: NodeUtils.filePath(this.node.originalName)
-    };
+    try {
+      const obj = {
+        name: this.node.name,
+        path: NodeUtils.filePath(this.node.originalName)
+      };
 
-    this.results.files.push(obj);
+      this.results.files.push(obj);
+    } catch (err) {
+      throw err;
+    }
   }
 }
