@@ -4,11 +4,11 @@ import { TypeNodes } from "./TypeNodes";
 
 export class SignatureNodes {
   node: any;
-  results: any;
+  refs: any;
 
-  constructor(node: any, results: any) {
+  constructor(node: any, refs: any) {
     this.node = node;
-    this.results = results;
+    this.refs = refs;
   }
 
   async handleSignature(signature: any) {
@@ -19,8 +19,8 @@ export class SignatureNodes {
       description: NodeUtils.description(signature.comment)
     };
 
-    await new TypeNodes(this.results).run(obj, signature);
-    await new NestedNodes(signature, obj, this.results).run();
+    await new TypeNodes(this.refs).run(obj, signature);
+    await new NestedNodes(signature, obj, this.refs).run();
 
     return obj;
   }

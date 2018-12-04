@@ -4,12 +4,12 @@ import { ParameterNodes } from "./ParameterNodes";
 export class NestedNodes {
   node: any;
   resultNode: any;
-  results: any;
+  refs: any;
 
-  constructor(node: any, resultNode: any, results: any) {
+  constructor(node: any, resultNode: any, refs: any) {
     this.node = node;
     this.resultNode = resultNode;
-    this.results = results;
+    this.refs = refs;
   }
 
   async run() {
@@ -19,14 +19,14 @@ export class NestedNodes {
         case "getSignature":
           this.resultNode[prop] = await new SignatureNodes(
             this.node,
-            this.results
+            this.refs
           ).run();
 
           return;
         case "parameters":
           this.resultNode[prop] = await new ParameterNodes(
             this.node,
-            this.results
+            this.refs
           ).run();
           return;
         default:

@@ -1,13 +1,13 @@
 export class TypeNodes {
-  results: any;
+  refs: any;
 
-  constructor(results: any) {
-    this.results = results;
+  constructor(refs: any) {
+    this.refs = refs;
   }
 
-  private handleRef(nodeName: string) {
-    if (this.results.refs.indexOf(nodeName) < 0) {
-      this.results.refs.push(nodeName);
+  private handleRef(nodeId: number) {
+    if (nodeId && this.refs.indexOf(nodeId) < 0) {
+      this.refs.push(nodeId);
     }
   }
 
@@ -17,7 +17,7 @@ export class TypeNodes {
     }
 
     if (node.type === "reference") {
-      this.handleRef(node.name);
+      this.handleRef(node.id);
     }
 
     const obj = {
