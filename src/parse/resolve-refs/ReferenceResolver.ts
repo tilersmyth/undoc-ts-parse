@@ -1,18 +1,15 @@
 import { resolve } from "url";
 
 export class ReferenceResolver {
-  results: { nodes: any; refs: any } = {
-    nodes: [],
-    refs: []
-  };
+  results: any = [];
 
-  constructor(results: { nodes: any; refs: any }) {
+  constructor(results: any) {
     this.results = results;
   }
 
   private matchRefs(refId: number): Promise<string | null> {
     return new Promise(resolve => {
-      for (const ref of this.results.refs) {
+      for (const ref of this.results) {
         const filter =
           ref && ref.children.filter((child: any) => child.id === refId);
 
@@ -53,9 +50,6 @@ export class ReferenceResolver {
 
   async run() {
     // Append ref path for nodes
-    await this.findTypes(this.results.nodes);
-
-    // Append ref paths for refs
-    await this.findTypes(this.results.refs);
+    await this.findTypes(this.results);
   }
 }

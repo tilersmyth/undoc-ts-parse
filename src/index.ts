@@ -1,6 +1,6 @@
 import { HandleParse } from "./parse/HandleParse";
 
-export const parse = async (): Promise<{ nodes: any; refs: any }> => {
+export const parse = async (): Promise<[]> => {
   try {
     return new HandleParse().run();
   } catch (err) {
