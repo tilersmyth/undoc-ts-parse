@@ -1,6 +1,6 @@
 {
   "name": "@undoc/ts-parse",
-  "version": "0.0.1",
+  "version": "0.0.7",
   "description": "Undoc TypeScript JSON doc parser",
   "main": "dist/index.js",
   "license": "MIT",

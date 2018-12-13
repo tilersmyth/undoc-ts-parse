@@ -15,6 +15,10 @@ export class FindNodeRefs extends events.EventEmitter {
   }
 
   private filter = (row: any, _: any, cb: any) => {
+    if (!row.children) {
+      return cb(null);
+    }
+
     // Search based on ref id array and must be interface
     const node = row.children.find(
       (child: any) => this.refs.indexOf(child.id) > -1 && child.kind === 256
