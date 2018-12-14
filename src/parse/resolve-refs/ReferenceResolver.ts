@@ -31,13 +31,18 @@ export class ReferenceResolver {
         }
       } else {
         for (const prop in nodes) {
-          if (prop == "type") {
+          if (prop === "type") {
             if (nodes[prop] === "reference" && nodes.id) {
               const refPath = await this.matchRefs(nodes.id);
               if (refPath) {
                 nodes.refPath = refPath;
               }
             }
+          }
+
+          // Remove unnecessary keys
+          if (prop === "id") {
+            delete nodes[prop];
           }
           if (nodes[prop] instanceof Object || nodes[prop] instanceof Array) {
             this.findTypes(nodes[prop]);
