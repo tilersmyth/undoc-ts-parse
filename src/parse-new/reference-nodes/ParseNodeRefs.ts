@@ -1,5 +1,5 @@
 import { FindNodeRefs } from "./FindNodeRefs";
-import { ParseReduce } from "../utils/ParseReducer";
+import { ReduceNewNodes } from "../ReduceNewNodes";
 
 /**
  * Parse found references
@@ -16,7 +16,7 @@ export class ParseNodeRefs {
       }
 
       const nodes = await new FindNodeRefs(newRefIds).run();
-      const reducedNodes = await new ParseReduce("files", nodes).run();
+      const reducedNodes = await new ReduceNewNodes("files", nodes).run();
 
       this.results.push(...reducedNodes.nodes);
       this.refIds.push(...newRefIds);

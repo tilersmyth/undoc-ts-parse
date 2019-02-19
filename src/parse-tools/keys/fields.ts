@@ -12,6 +12,7 @@ export default <any>{
   children: [
     {
       id: keyField,
+      tagged: keyField,
       name: keyField,
       comment: comment
     }
@@ -42,6 +43,13 @@ export default <any>{
     {
       id: keyField,
       name: keyField
+    }
+  ],
+  typeArguments: [
+    {
+      id: keyField,
+      name: keyField,
+      type: keyField
     }
   ],
   typeParameter: [

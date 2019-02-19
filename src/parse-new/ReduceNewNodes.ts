@@ -1,6 +1,6 @@
-import keyFields from "../keys/fields";
+import keyFields from "../parse-tools/keys/fields";
 
-export class ParseReduce {
+export class ReduceNewNodes {
   refIds: number[] = [];
   parent: string = "";
   nodes: any;
@@ -58,6 +58,7 @@ export class ParseReduce {
           this.reducer.bind(this, this.parent),
           []
         );
+
         resolve({ nodes, refIds: this.refIds });
       } catch (err) {
         reject(err);

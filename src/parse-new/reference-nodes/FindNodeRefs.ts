@@ -1,36 +1,44 @@
 import * as events from "events";
 
-import { Stream } from "../utils/Stream";
+import { Stream } from "../../parse-tools/Stream";
 import { Output } from "../Output";
 
 /**
- * Find modules in generated TypeDoc file
+ * Find types referenced in modules
  */
-export class FindModules extends events.EventEmitter {
-  constructor() {
+export class FindNodeRefs extends events.EventEmitter {
+  refs: any;
+
+  constructor(refs: any) {
     super();
+    this.refs = refs;
   }
 
   private filter = (row: any, _: any, cb: any) => {
-    const filter =
-      row.children &&
-      row.children.find((child: any) => {
-        if (child.comment && child.comment.tags) {
-          return child.comment.tags.find((t: any) => t.tag === "undoc");
-        }
-      });
+    if (!row.children) {
+      return cb(null);
+    }
 
-    cb(null, filter && row);
+    // Search based on ref id array and must be interface
+    const node = row.children.find(
+      (child: any) => this.refs.indexOf(child.id) > -1 && child.kind === 256
+    );
+
+    if (!node) {
+      return cb(null);
+    }
+
+    cb(null, row);
   };
 
   private event = (type: string, data?: any): void => {
     if (type === "data") {
-      this.emit("e", "nodes_found", data);
+      this.emit("e", "node_refs_found", data);
       return;
     }
 
     if (type === "end") {
-      this.emit("e", "nodes_end", data);
+      this.emit("e", "node_refs_end", data);
       return;
     }
   };
@@ -39,7 +47,7 @@ export class FindModules extends events.EventEmitter {
     try {
       const output = new Output();
       this.on("e", output.logger);
-      this.emit("e", "nodes_begin", null);
+      this.emit("e", "node_refs_begin");
       const results = await new Stream("children.*").run(
         this.filter,
         this.event

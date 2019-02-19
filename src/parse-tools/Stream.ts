@@ -1,7 +1,7 @@
 import * as JSONStream from "JSONStream";
 import * as through2 from "through2";
 
-import { FileUtils } from "../../utils/FileUtils";
+import { FileUtils } from "./FileUtils";
 
 export class Stream {
   path: any;
