@@ -1,12 +1,9 @@
-import * as events from "events";
-
-import { Stream } from "../parse-tools/Stream";
-import { Output } from "./Output";
+import { Stream, ParseEvents } from "../parse-tools";
 
 /**
  * Find nodes in generated TypeDoc file
  */
-export class FindNewNodes extends events.EventEmitter {
+export class FindNewNodes extends ParseEvents {
   excludeFiles: string[];
 
   constructor(excludeFiles: string[]) {
@@ -51,28 +48,20 @@ export class FindNewNodes extends events.EventEmitter {
 
   private event = (type: string, data?: any): void => {
     if (type === "data") {
-      this.emit("e", "nodes_found", data);
+      this.parserEmit("new_nodes_found", data);
       return;
     }
 
     if (type === "end") {
-      this.emit("e", "nodes_end", data);
+      this.parserEmit("find_new_nodes_end", data);
       return;
     }
   };
 
   async run(): Promise<[]> {
     try {
-      const output = new Output();
-      this.on("e", output.logger);
-      this.emit("e", "nodes_begin", null);
-      const results = await new Stream("children.*").run(
-        this.filter,
-        this.event
-      );
-
-      this.removeListener("e", output.logger);
-      return results;
+      this.parserEmit("find_new_nodes_begin", null);
+      return await new Stream("children.*").run(this.filter, this.event);
     } catch (err) {
       throw err;
     }

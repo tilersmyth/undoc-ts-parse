@@ -1,12 +1,9 @@
-import * as events from "events";
-
-import { Stream } from "../../parse-tools/Stream";
-import { Output } from "../Output";
+import { Stream, ParseEvents } from "../../parse-tools";
 
 /**
  * Find types referenced in modules
  */
-export class FindNodeRefs extends events.EventEmitter {
+export class FindNodeRefs extends ParseEvents {
   refs: any;
 
   constructor(refs: any) {
@@ -33,27 +30,20 @@ export class FindNodeRefs extends events.EventEmitter {
 
   private event = (type: string, data?: any): void => {
     if (type === "data") {
-      this.emit("e", "node_refs_found", data);
+      this.parserEmit("node_refs_found", data);
       return;
     }
 
     if (type === "end") {
-      this.emit("e", "node_refs_end", data);
+      this.parserEmit("node_refs_end", data);
       return;
     }
   };
 
   async run(): Promise<[]> {
     try {
-      const output = new Output();
-      this.on("e", output.logger);
-      this.emit("e", "node_refs_begin");
-      const results = await new Stream("children.*").run(
-        this.filter,
-        this.event
-      );
-      this.removeListener("e", output.logger);
-      return results;
+      this.parserEmit("node_refs_begin", null);
+      return await new Stream("children.*").run(this.filter, this.event);
     } catch (err) {
       throw err;
     }

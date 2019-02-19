@@ -1,5 +1,4 @@
-import keyFields from "../parse-tools/keys/fields";
-import { comment } from "../parse-tools/keys/helpers";
+import { nodeKeys, commentHelper, ParseEvents } from "../parse-tools";
 import { UpdatedNodeUtils } from "./UpdatedNodeUtils";
 
 interface HandleParseUpdateReturn {
@@ -8,13 +7,14 @@ interface HandleParseUpdateReturn {
   updateFilePaths: string[];
 }
 
-export class ReduceUpdatedNodes {
+export class ReduceUpdatedNodes extends ParseEvents {
   updates: any;
   nodes: any;
   updateNodeRefs: any = [];
   updateFilePaths: any = [];
 
   constructor(updates: any, nodes: any) {
+    super();
     this.updates = updates;
     this.nodes = nodes;
   }
@@ -58,11 +58,11 @@ export class ReduceUpdatedNodes {
 
       if (type === "comment") {
         delete acc[updateIndex].id;
-        acc[updateIndex].update = comment({}, node);
+        acc[updateIndex].update = commentHelper({}, node);
       }
 
       if (isTarget) {
-        const fields = keyFields[type];
+        const fields = nodeKeys[type];
         const updatedFields: any = {};
         for (const prop in node) {
           const key = fields.find((f: any) => f[prop]);
@@ -81,6 +81,8 @@ export class ReduceUpdatedNodes {
         ) {
           this.updateNodeRefs.push(updatedFields.id);
         }
+
+        this.parserEmit("update_node_found", updatedFields);
 
         acc[updateIndex].update = updatedFields;
 

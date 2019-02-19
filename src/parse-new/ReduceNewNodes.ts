@@ -1,4 +1,4 @@
-import keyFields from "../parse-tools/keys/fields";
+import { nodeKeys } from "../parse-tools/keys/nodeKeys";
 
 export class ReduceNewNodes {
   refIds: number[] = [];
@@ -12,7 +12,7 @@ export class ReduceNewNodes {
 
   reducer(type: any, acc: any, node: any) {
     try {
-      const fields = keyFields[type];
+      const fields = nodeKeys[type];
       const obj: any = {};
 
       for (const prop in node) {
@@ -22,7 +22,7 @@ export class ReduceNewNodes {
           key[prop](obj, node[prop], prop);
         }
 
-        const keys = keyFields[prop];
+        const keys = nodeKeys[prop];
         if (keys) {
           if (Array.isArray(node[prop])) {
             obj[prop] = node[prop].reduce(this.reducer.bind(this, prop), []);

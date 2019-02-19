@@ -1,16 +1,16 @@
-export const keyField = (obj: any, value: any, prop?: string) => {
+export const keyFieldHelper = (obj: any, value: any, prop?: string) => {
   return prop && (obj[prop] = value);
 };
 
-export const filePath = (obj: any, value: any) => {
+export const pathHelper = (obj: any, value: any) => {
   return (obj["path"] = value.substring(value.indexOf("src")));
 };
 
-export const kind = (obj: any, value: any) => {
+export const kindHelper = (obj: any, value: any) => {
   return (obj["kind"] = value);
 };
 
-export const comment = (obj: any, value: any) => {
+export const commentHelper = (obj: any, value: any) => {
   const comment: any = value && (obj["comment"] = {});
   const options = ["shortText", "text"];
 
