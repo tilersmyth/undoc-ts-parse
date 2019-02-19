@@ -82,7 +82,7 @@ export class ReduceUpdatedNodes extends ParseEvents {
           this.updateNodeRefs.push(updatedFields.id);
         }
 
-        this.parserEmit("update_node_found", updatedFields);
+        this.parserEmit("update_nodes_found", updatedFields);
 
         acc[updateIndex].update = updatedFields;
 
@@ -111,6 +111,8 @@ export class ReduceUpdatedNodes extends ParseEvents {
 
   run(): HandleParseUpdateReturn {
     const updateResults = this.updates.map(this.mapNodes);
+
+    this.parserEmit("update_nodes_total", updateResults);
 
     return {
       updateResults,
