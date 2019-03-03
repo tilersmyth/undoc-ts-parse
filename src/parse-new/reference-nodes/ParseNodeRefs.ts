@@ -1,6 +1,8 @@
 import { FindNodeRefs } from "./FindNodeRefs";
 import { ReduceNewNodes } from "../ReduceNewNodes";
 
+import ParserEvents from "../../Events";
+
 /**
  * Parse found references
  */
@@ -14,6 +16,13 @@ export class ParseNodeRefs {
       if (newRefIds.length === 0) {
         return [];
       }
+
+      ParserEvents.emitter(
+        "parser_ref_find_nodes",
+        `Searching for ${newRefIds.length} node reference${
+          newRefIds.length > 1 ? "s" : ""
+        }`
+      );
 
       const nodes = await new FindNodeRefs(newRefIds).run();
       const reducedNodes = await new ReduceNewNodes("files", nodes).run();

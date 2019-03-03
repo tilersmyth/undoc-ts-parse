@@ -1,13 +1,13 @@
-import { Stream, ParseEvents } from "../parse-tools";
+import { Stream } from "../parse-tools";
+import ParserEvents from "../Events";
 
 /**
  * Find nodes in generated TypeDoc file
  */
-export class FindNewNodes extends ParseEvents {
+export class FindNewNodes {
   excludeFiles: string[];
 
   constructor(excludeFiles: string[]) {
-    super();
     this.excludeFiles = excludeFiles;
   }
 
@@ -48,19 +48,19 @@ export class FindNewNodes extends ParseEvents {
 
   private event = (type: string, data?: any): void => {
     if (type === "data") {
-      this.parserEmit("new_nodes_found", data);
+      ParserEvents.emitter("parser_new_node_found", data);
       return;
     }
 
     if (type === "end") {
-      this.parserEmit("find_new_nodes_end", data);
+      ParserEvents.emitter("parser_new_find_nodes_end", data);
       return;
     }
   };
 
   async run(): Promise<[]> {
     try {
-      this.parserEmit("find_new_nodes_begin", null);
+      ParserEvents.emitter("parser_new_find_nodes_begin", null);
       return await new Stream("children.*").run(this.filter, this.event);
     } catch (err) {
       throw err;

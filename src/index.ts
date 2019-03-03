@@ -1,16 +1,32 @@
 import { HandleParseNew } from "./parse-new/HandleParseNew";
 import { HandleParseUpdate } from "./parse-update/HandleParseUpdate";
 
-export const parseNew = async (): Promise<[]> => {
+import ParserEvents from "./Events";
+
+export const parseNew = async (undocEventEmitter: any): Promise<[]> => {
   try {
+    ParserEvents.emitter = undocEventEmitter;
+
+    ParserEvents.emitter(
+      "parser_init",
+      "Looking for tagged modules in TypeDoc JSON"
+    );
+
     return await new HandleParseNew([], []).run();
   } catch (err) {
     throw err;
   }
 };
 
-export const parseUpdate = async (updates: any): Promise<{}> => {
+export const parseUpdate = async (
+  undocEventEmitter: any,
+  updates: any
+): Promise<{}> => {
   try {
+    ParserEvents.emitter = undocEventEmitter;
+
+    ParserEvents.emitter("parser_init", "Collecting updates from TypeDoc JSON");
+
     const {
       updateResults,
       updateFilePaths,

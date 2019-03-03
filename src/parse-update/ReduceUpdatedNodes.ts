@@ -1,5 +1,7 @@
-import { nodeKeys, commentHelper, ParseEvents } from "../parse-tools";
+import { nodeKeys, commentHelper } from "../parse-tools";
 import { UpdatedNodeUtils } from "./UpdatedNodeUtils";
+
+import ParserEvents from "../Events";
 
 interface HandleParseUpdateReturn {
   updateResults: any;
@@ -7,14 +9,13 @@ interface HandleParseUpdateReturn {
   updateFilePaths: string[];
 }
 
-export class ReduceUpdatedNodes extends ParseEvents {
+export class ReduceUpdatedNodes {
   updates: any;
   nodes: any;
   updateNodeRefs: any = [];
   updateFilePaths: any = [];
 
   constructor(updates: any, nodes: any) {
-    super();
     this.updates = updates;
     this.nodes = nodes;
   }
@@ -82,8 +83,6 @@ export class ReduceUpdatedNodes extends ParseEvents {
           this.updateNodeRefs.push(updatedFields.id);
         }
 
-        this.parserEmit("update_nodes_found", updatedFields);
-
         acc[updateIndex].update = updatedFields;
 
         return acc;
@@ -104,6 +103,9 @@ export class ReduceUpdatedNodes extends ParseEvents {
       .reduce(this.nodeReducer.bind(this, null, node), [])
       .filter((line: any) => line.update);
 
+    const context = `${update.file} (${updates.length} node updates)`;
+    ParserEvents.emitter("parser_update_file_node_line_updates", context);
+
     this.updateFilePaths.push(update.file);
 
     return { file: update.file, updates };
@@ -111,8 +113,6 @@ export class ReduceUpdatedNodes extends ParseEvents {
 
   run(): HandleParseUpdateReturn {
     const updateResults = this.updates.map(this.mapNodes);
-
-    this.parserEmit("update_nodes_total", updateResults);
 
     return {
       updateResults,

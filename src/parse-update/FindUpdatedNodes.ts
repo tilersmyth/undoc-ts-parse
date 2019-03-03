@@ -1,13 +1,14 @@
-import { Stream, ParseEvents } from "../parse-tools";
+import { Stream } from "../parse-tools";
+
+import ParserEvents from "../Events";
 
 /**
  * Find nodes by originalName to locate node updates
  */
-export class FindUpdatedNodes extends ParseEvents {
+export class FindUpdatedNodes {
   updates: any;
 
   constructor(updates: any) {
-    super();
     this.updates = updates;
   }
 
@@ -21,19 +22,23 @@ export class FindUpdatedNodes extends ParseEvents {
 
   private event = (type: string, data?: any): void => {
     if (type === "data") {
-      this.parserEmit("update_nodes_file", data);
+      ParserEvents.emitter("parser_update_file_node_found", data);
       return;
     }
 
     if (type === "end") {
-      this.parserEmit("find_update_nodes_end", data);
+      ParserEvents.emitter("parser_update_find_file_nodes_end", data);
       return;
     }
   };
 
   async run(): Promise<[]> {
     try {
-      this.parserEmit("find_update_nodes_begin", null);
+      const fileCount = this.updates.length;
+      const context = `Locating updates in ${fileCount} modified file${
+        fileCount === 1 ? "" : "s"
+      }`;
+      ParserEvents.emitter("parser_update_find_file_nodes_start", context);
       return await new Stream("children.*").run(this.filter, this.event);
     } catch (err) {
       throw err;

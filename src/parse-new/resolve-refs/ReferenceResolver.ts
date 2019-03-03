@@ -1,5 +1,3 @@
-import { resolve } from "url";
-
 export class ReferenceResolver {
   results: any = [];
 
