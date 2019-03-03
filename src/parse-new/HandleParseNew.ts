@@ -4,19 +4,17 @@ import { ParseNodeRefs } from "./reference-nodes/ParseNodeRefs";
 import { ReferenceResolver } from "./resolve-refs/ReferenceResolver";
 
 export class HandleParseNew {
-  excludeFiles: string[];
-  refIdsFromUpdatedNodes: number[];
+  newFiles: string[];
 
-  constructor(excludeFiles: string[], refIdsFromUpdatedNodes: number[]) {
-    this.excludeFiles = excludeFiles;
-    this.refIdsFromUpdatedNodes = refIdsFromUpdatedNodes;
+  constructor(newFiles: string[]) {
+    this.newFiles = newFiles;
   }
 
   async run(): Promise<[]> {
     try {
       const results: any = [];
 
-      const newNodes = await new FindNewNodes(this.excludeFiles).run();
+      const newNodes = await new FindNewNodes(this.newFiles).run();
 
       const { refIds, nodes } = await new ReduceNewNodes(
         "files",
@@ -24,7 +22,7 @@ export class HandleParseNew {
       ).run();
 
       results.push(...nodes);
-      refIds.push(...this.refIdsFromUpdatedNodes);
+      //  refIds.push(...this.refIdsFromUpdatedNodes);
 
       if (refIds.length > 0) {
         const refs = await new ParseNodeRefs().run(refIds);

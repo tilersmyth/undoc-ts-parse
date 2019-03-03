@@ -5,45 +5,42 @@ import ParserEvents from "../Events";
  * Find nodes in generated TypeDoc file
  */
 export class FindNewNodes {
-  excludeFiles: string[];
+  newFiles: string[];
 
-  constructor(excludeFiles: string[]) {
-    this.excludeFiles = excludeFiles;
+  constructor(newFiles: string[]) {
+    this.newFiles = newFiles;
   }
 
-  private filterExcludedFiles(row: any): boolean {
-    if (this.excludeFiles.length === 0 || !row.originalName) {
+  private isNewFile(row: any): boolean {
+    if (!row.originalName) {
       return true;
     }
 
-    const isExluded = this.excludeFiles.some((filePath: any) =>
+    return this.newFiles.some((filePath: any) =>
       row.originalName.includes(filePath)
     );
-
-    return isExluded ? false : true;
   }
 
   private filter = (row: any, _: any, cb: any) => {
-    if (this.filterExcludedFiles(row)) {
-      const filter =
-        row.children &&
-        row.children.find((child: any) => {
-          if (child.comment && child.comment.tags) {
-            const hasTag = child.comment.tags.find(
-              (t: any) => t.tag === "undoc"
-            );
-            if (hasTag) {
-              child.tagged = true;
-              return hasTag;
-            }
-          }
-        });
-
-      cb(null, filter && row);
+    if (!this.isNewFile(row)) {
+      cb(null, null);
       return;
     }
 
-    cb(null, null);
+    const filter =
+      row.children &&
+      row.children.find((child: any) => {
+        if (child.comment && child.comment.tags) {
+          const hasTag = child.comment.tags.find((t: any) => t.tag === "undoc");
+          if (hasTag) {
+            child.tagged = true;
+            return hasTag;
+          }
+        }
+      });
+
+    cb(null, filter && row);
+    return;
   };
 
   private event = (type: string, data?: any): void => {

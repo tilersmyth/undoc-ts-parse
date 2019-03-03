@@ -6,14 +6,12 @@ import ParserEvents from "../Events";
 interface HandleParseUpdateReturn {
   updateResults: any;
   updateRefIds: number[];
-  updateFilePaths: string[];
 }
 
 export class ReduceUpdatedNodes {
   updates: any;
   nodes: any;
   updateNodeRefs: any = [];
-  updateFilePaths: any = [];
 
   constructor(updates: any, nodes: any) {
     this.updates = updates;
@@ -106,8 +104,6 @@ export class ReduceUpdatedNodes {
     const context = `${update.file} (${updates.length} node updates)`;
     ParserEvents.emitter("parser_update_file_node_line_updates", context);
 
-    this.updateFilePaths.push(update.file);
-
     return { file: update.file, updates };
   };
 
@@ -116,8 +112,7 @@ export class ReduceUpdatedNodes {
 
     return {
       updateResults,
-      updateRefIds: this.updateNodeRefs,
-      updateFilePaths: this.updateFilePaths
+      updateRefIds: this.updateNodeRefs
     };
   }
 }
