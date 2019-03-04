@@ -48,6 +48,8 @@ export class ReduceUpdatedNodes {
     if (inRange) {
       const updateIndex = UpdatedNodeUtils.updateIndex(acc, lineNo);
 
+      acc[updateIndex].type = type;
+
       acc[updateIndex].query.push({
         table: type,
         args: UpdatedNodeUtils.typeArgs(type, node)
@@ -70,7 +72,7 @@ export class ReduceUpdatedNodes {
           }
         }
 
-        // delete acc[updateIndex].id;
+        delete acc[updateIndex].id;
 
         // Need to store refs to look up by id
         if (
