@@ -10,21 +10,21 @@ interface HandleParseUpdateReturn {
 
 export class HandleParseUpdate {
   addedFiles: string[];
-  modifiedFileUpdateDetail: any;
+  modifiedFileLineDetail: any;
 
-  constructor(addedFiles: string[], modifiedFileUpdateDetail: any) {
+  constructor(addedFiles: string[], modifiedFileLineDetail: any) {
     this.addedFiles = addedFiles;
-    this.modifiedFileUpdateDetail = modifiedFileUpdateDetail;
+    this.modifiedFileLineDetail = modifiedFileLineDetail;
   }
 
   async run(): Promise<HandleParseUpdateReturn> {
     try {
       const updatedNodes = await new FindUpdatedNodes(
-        this.modifiedFileUpdateDetail
+        this.modifiedFileLineDetail
       ).run();
 
       const { updateResults, updateRefIds } = new ReduceUpdatedNodes(
-        this.modifiedFileUpdateDetail,
+        this.modifiedFileLineDetail,
         updatedNodes
       ).run();
 

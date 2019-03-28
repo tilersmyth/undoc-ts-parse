@@ -32,7 +32,7 @@ export class UpdatedNodeUtils {
     return lineNo >= position.nodeStart && lineNo <= position.nodeEnd;
   }
 
-  static isTarget(position: any, update: any) {
+  static isModifiedTarget(position: any, update: any) {
     if (position.lineStart !== position.lineEnd) {
       return false;
     }
@@ -40,14 +40,25 @@ export class UpdatedNodeUtils {
     if (update.lineNo === position.lineStart) {
       // Check if line changes are inconsequential by
       // comparing node position to unchanged cols
-      const unchangedCols = update.cols.some(
-        (col: any) =>
-          col.start <= position.colStart && col.end >= position.colEnd
+      const unchangedCols = update.exclude.some(
+        (line: any) =>
+          line.colStart <= position.colStart && line.colEnd >= position.colEnd
       );
 
       if (!unchangedCols) {
         return true;
       }
+    }
+
+    return false;
+  }
+
+  static isAddedTarget(position: any, update: any) {
+    if (
+      update.lineNo === position.lineStart &&
+      position.lineStart === position.lineEnd
+    ) {
+      return true;
     }
 
     return false;

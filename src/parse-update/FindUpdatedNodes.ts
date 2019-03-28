@@ -34,11 +34,6 @@ export class FindUpdatedNodes {
 
   async run(): Promise<[]> {
     try {
-      const fileCount = this.updates.length;
-      const context = `Locating updates in ${fileCount} modified file${
-        fileCount === 1 ? "" : "s"
-      }`;
-      ParserEvents.emitter("parser_update_find_file_nodes_start", context);
       return await new Stream("children.*").run(this.filter, this.event);
     } catch (err) {
       throw err;
