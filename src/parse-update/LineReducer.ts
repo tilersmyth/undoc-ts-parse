@@ -129,7 +129,7 @@ export class LineReducer {
         for (const prop in node) {
           const key = fields.find((f: any) => f[prop]);
           if (key) {
-            key[prop](updatedFields, node[prop], prop);
+            key[prop](updatedFields, node, prop);
           }
         }
 
