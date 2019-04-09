@@ -133,7 +133,6 @@ export class LineReducer {
       if (isTarget) {
         // Setup update fields
         acc.nodes[updateIndex]["update"] = {};
-        acc.nodes[updateIndex]["update"].entity = type;
 
         const fields = nodeKeys[type];
         const targetFields: any = {};
@@ -156,12 +155,15 @@ export class LineReducer {
           acc.refs.push(targetFields.id);
         }
 
+        // Remove target node id for schema validation
+        delete acc.nodes[updateIndex].id;
+
         // 3. If node is not part of an array then set update values
         // and return out
         if (!lastNode) {
           delete targetFields.id;
-          acc.nodes[updateIndex]["update"].type = "object";
-          acc.nodes[updateIndex]["update"].content = targetFields;
+          acc.nodes[updateIndex]["update"].find = "object";
+          acc.nodes[updateIndex]["update"][type] = targetFields;
           return acc;
         }
 
@@ -181,8 +183,8 @@ export class LineReducer {
           delete updatedFieldsObj.id;
           parentNode.push(updatedFieldsObj);
         }
-        acc.nodes[updateIndex]["update"].type = "array";
-        acc.nodes[updateIndex]["update"].content = parentNode;
+        acc.nodes[updateIndex]["update"].find = "array";
+        acc.nodes[updateIndex]["update"][type] = parentNode;
         return acc;
       }
 
