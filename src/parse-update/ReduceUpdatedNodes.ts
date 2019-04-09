@@ -31,7 +31,7 @@ export class ReduceUpdatedNodes {
     );
 
     const modified = update.lines.modified.reduce(
-      reducer.modified.bind(this, null, node),
+      reducer.modified.bind(this, null, null, node),
       { nodes: [], refs: [] }
     );
     // .filter((line: any) => line.update);

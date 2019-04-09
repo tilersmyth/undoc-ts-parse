@@ -8,7 +8,7 @@ export class LineReducer {
     for (const prop in node) {
       if (node[prop] instanceof Array) {
         for (const nodeArr of node[prop]) {
-          cb({ prop, node: nodeArr });
+          cb({ lastNode: node[prop], prop, node: nodeArr });
         }
         continue;
       }
@@ -17,18 +17,18 @@ export class LineReducer {
         continue;
       }
 
-      cb({ prop, node: node[prop] });
+      cb({ lastNode: null, prop, node: node[prop] });
     }
 
     cb(null);
   }
 
-  added = (type: string | null, node: any, acc: any, update: any) => {
+  added = (_: any, type: string | null, node: any, acc: any, update: any) => {
     // Node init
     if (!type) {
       this.recursive(node, (item: any) => {
         if (item) {
-          this.added(item.prop, item.node, acc, update);
+          this.added(item.lastNode, item.prop, item.node, acc, update);
         }
       });
 
@@ -41,10 +41,8 @@ export class LineReducer {
     if (inRange) {
       const updateIndex = UpdatedNodeUtils.updateIndex(acc.nodes, lineNo);
 
-      acc.nodes[updateIndex].type = type;
-
       acc.nodes[updateIndex].query.push({
-        table: type,
+        entity: type,
         args: UpdatedNodeUtils.typeArgs(type, node)
       });
 
@@ -52,7 +50,7 @@ export class LineReducer {
 
       if (type === "comment") {
         delete acc.nodes[updateIndex].id;
-        acc.nodes[updateIndex].update = commentHelper({}, node);
+        acc.nodes[updateIndex][type] = commentHelper({}, node);
       }
 
       if (isTarget) {
@@ -76,14 +74,16 @@ export class LineReducer {
           acc.refs.push(updatedFields.id);
         }
 
-        acc.nodes[updateIndex].update = updatedFields;
+        acc.nodes[updateIndex]["update"] = {};
+        acc.nodes[updateIndex]["update"].entity = type;
+        acc.nodes[updateIndex]["update"].content = updatedFields;
 
         return acc;
       }
 
       this.recursive(node, (item: any) => {
         if (item) {
-          this.added(item.prop, item.node, acc, update);
+          this.added(item.lastNode, item.prop, item.node, acc, update);
         }
       });
     }
@@ -91,12 +91,18 @@ export class LineReducer {
     return acc;
   };
 
-  modified = (type: string | null, node: any, acc: any, update: any) => {
+  modified = (
+    lastNode: any | null,
+    type: string | null,
+    node: any,
+    acc: any,
+    update: any
+  ) => {
     // Node init
     if (!type) {
       this.recursive(node, (item: any) => {
         if (item) {
-          this.modified(item.prop, item.node, acc, update);
+          this.modified(item.lastNode, item.prop, item.node, acc, update);
         }
       });
 
@@ -104,54 +110,85 @@ export class LineReducer {
     }
 
     const lineNo = update.lineNo;
+
     const inRange = UpdatedNodeUtils.inRange(node, lineNo);
 
     if (inRange) {
       const updateIndex = UpdatedNodeUtils.updateIndex(acc.nodes, lineNo);
 
-      acc.nodes[updateIndex].type = type;
-
-      acc.nodes[updateIndex].query.push({
-        table: type,
-        args: UpdatedNodeUtils.typeArgs(type, node)
-      });
-
       const isTarget = UpdatedNodeUtils.isModifiedTarget(node.position, update);
 
-      if (type === "comment") {
-        delete acc.nodes[updateIndex].id;
-        acc.nodes[updateIndex].update = commentHelper({}, node);
+      if (!isTarget) {
+        acc.nodes[updateIndex].query.push({
+          entity: type,
+          args: UpdatedNodeUtils.typeArgs(type, node)
+        });
+
+        if (type === "comment") {
+          delete acc.nodes[updateIndex].id;
+          acc.nodes[updateIndex][type] = commentHelper({}, node);
+        }
       }
 
       if (isTarget) {
+        // Setup update fields
+        acc.nodes[updateIndex]["update"] = {};
+        acc.nodes[updateIndex]["update"].entity = type;
+
         const fields = nodeKeys[type];
-        const updatedFields: any = {};
+        const targetFields: any = {};
+
+        // 1. Find target fields
         for (const prop in node) {
           const key = fields.find((f: any) => f[prop]);
           if (key) {
-            key[prop](updatedFields, node, prop);
+            key[prop](targetFields, node[prop], prop);
           }
         }
 
-        delete acc.nodes[updateIndex].id;
-
-        // Need to store refs to look up by id
+        // 2. Determine if updated fields have references
+        // that need to be looked at
         if (
-          updatedFields.type &&
-          updatedFields.type === "reference" &&
-          updatedFields.id
+          targetFields.type &&
+          targetFields.type === "reference" &&
+          targetFields.id
         ) {
-          acc.refs.push(updatedFields.id);
+          acc.refs.push(targetFields.id);
         }
 
-        acc.nodes[updateIndex].update = updatedFields;
+        // 3. If node is not part of an array then set update values
+        // and return out
+        if (!lastNode) {
+          delete targetFields.id;
+          acc.nodes[updateIndex]["update"].type = "object";
+          acc.nodes[updateIndex]["update"].content = targetFields;
+          return acc;
+        }
 
+        // 4. Node is part of an array, so we need to grab parent node
+        // and compare to server as we have no way of knowing what is
+        // actually updated (we only have the new content)
+        const parentNode: any = [];
+        for (const n of lastNode) {
+          const updatedFieldsObj: any = {};
+          for (const prop in n) {
+            const key = fields.find((f: any) => f[prop]);
+            if (key) {
+              key[prop](updatedFieldsObj, n[prop], prop);
+            }
+          }
+
+          delete updatedFieldsObj.id;
+          parentNode.push(updatedFieldsObj);
+        }
+        acc.nodes[updateIndex]["update"].type = "array";
+        acc.nodes[updateIndex]["update"].content = parentNode;
         return acc;
       }
 
       this.recursive(node, (item: any) => {
         if (item) {
-          this.modified(item.prop, item.node, acc, update);
+          this.modified(item.lastNode, item.prop, item.node, acc, update);
         }
       });
     }

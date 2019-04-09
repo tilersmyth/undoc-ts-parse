@@ -4,8 +4,8 @@ import { ParseNodeRefs } from "../parse-new/reference-nodes/ParseNodeRefs";
 import { HandleParseNew } from "../parse-new/HandleParseNew";
 
 interface HandleParseUpdateReturn {
-  updateResults: any;
-  addedResults: any;
+  updated?: any;
+  added?: any;
 }
 
 export class HandleParseUpdate {
@@ -17,8 +17,10 @@ export class HandleParseUpdate {
     this.modifiedFileLineDetail = modifiedFileLineDetail;
   }
 
-  async run(): Promise<HandleParseUpdateReturn> {
+  async run(): Promise<HandleParseUpdateReturn[]> {
     try {
+      const results: any = [];
+
       const updatedNodes = await new FindUpdatedNodes(
         this.modifiedFileLineDetail
       ).run();
@@ -27,6 +29,8 @@ export class HandleParseUpdate {
         this.modifiedFileLineDetail,
         updatedNodes
       ).run();
+
+      results.push({ updated: updateResults });
 
       if (updateRefIds.length > 0) {
         const refs = await new ParseNodeRefs().run(updateRefIds);
@@ -41,7 +45,11 @@ export class HandleParseUpdate {
         addedResults.push(...results);
       }
 
-      return { updateResults, addedResults };
+      if (addedResults.length > 0) {
+        results.push({ added: addedResults });
+      }
+
+      return results;
     } catch (err) {
       throw err;
     }

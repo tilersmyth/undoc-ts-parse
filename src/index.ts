@@ -34,12 +34,7 @@ export const parseUpdate = async (
       "Searching for modified nodes in TypeDoc JSON"
     );
 
-    const { updateResults, addedResults } = await new HandleParseUpdate(
-      addedFiles,
-      modifiedFileLineDetail
-    ).run();
-
-    return { updated: updateResults, added: addedResults };
+    return new HandleParseUpdate(addedFiles, modifiedFileLineDetail).run();
   } catch (err) {
     throw err;
   }
