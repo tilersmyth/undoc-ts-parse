@@ -30,9 +30,6 @@ export class HandleParseUpdate {
           node.originalName.includes(file.path)
         );
 
-        const diffObj: any = { updates: [] };
-        diffObj.path = file.path;
-
         const fileUpdates = file.diffs.map((diff: any) => {
           const nodeUpdates = new FormatNodeUpdates(diff, nodes);
           const formattedUpdates = diff.path.reduce(nodeUpdates.reduce, {
@@ -43,9 +40,7 @@ export class HandleParseUpdate {
           return { kind, ...formattedUpdates };
         });
 
-        diffObj.updates.push(fileUpdates);
-
-        return diffObj;
+        return { path: file.path, updates: fileUpdates };
       });
 
       return modified;
