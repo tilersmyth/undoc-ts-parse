@@ -8,7 +8,6 @@ import {
 export const nodeKeys = <any>{
   files: [
     {
-      id: keyFieldHelper,
       name: keyFieldHelper,
       originalName: pathHelper,
       kindString: kindHelper
@@ -16,53 +15,56 @@ export const nodeKeys = <any>{
   ],
   children: [
     {
-      id: keyFieldHelper,
       tagged: keyFieldHelper,
       name: keyFieldHelper,
-      comment: commentHelper
+      comment: commentHelper,
+      kindString: kindHelper
     }
   ],
   signatures: [
     {
-      id: keyFieldHelper,
       name: keyFieldHelper,
       kindString: kindHelper,
       comment: commentHelper
     }
   ],
+  comment: [
+    {
+      shortText: keyFieldHelper,
+      text: keyFieldHelper
+    }
+  ],
   getSignature: [
     {
-      id: keyFieldHelper,
       name: keyFieldHelper,
       kindString: kindHelper
     }
   ],
   indexSignature: [
     {
-      id: keyFieldHelper,
       name: keyFieldHelper,
       kindString: kindHelper
     }
   ],
   parameters: [
     {
-      id: keyFieldHelper,
-      name: keyFieldHelper
+      name: keyFieldHelper,
+      kindString: kindHelper
     }
   ],
   typeArguments: [
     {
-      id: keyFieldHelper,
       name: keyFieldHelper,
-      type: keyFieldHelper
+      type: keyFieldHelper,
+      kindString: kindHelper
     }
   ],
   typeParameter: [
     {
-      id: keyFieldHelper,
-      name: keyFieldHelper
+      name: keyFieldHelper,
+      kindString: kindHelper
     }
   ],
-  type: [{ id: keyFieldHelper, type: keyFieldHelper, name: keyFieldHelper }],
-  types: [{ id: keyFieldHelper, type: keyFieldHelper, name: keyFieldHelper }]
+  type: [{ type: keyFieldHelper, name: keyFieldHelper }],
+  types: [{ type: keyFieldHelper, name: keyFieldHelper }]
 };

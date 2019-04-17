@@ -24,7 +24,7 @@ export const parseNew = async (
 export const parseUpdate = async (
   undocEventEmitter: any,
   addedFiles: string[],
-  modifiedFileLineDetail: any
+  modifiedFiles: any
 ): Promise<{}> => {
   try {
     ParserEvents.emitter = undocEventEmitter;
@@ -34,7 +34,10 @@ export const parseUpdate = async (
       "Searching for modified nodes in TypeDoc JSON"
     );
 
-    return new HandleParseUpdate(addedFiles, modifiedFileLineDetail).run();
+    const added = await new HandleParseNew(addedFiles).run();
+    const modified = await new HandleParseUpdate(modifiedFiles).run();
+
+    return { added, modified };
   } catch (err) {
     throw err;
   }

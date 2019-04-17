@@ -24,6 +24,18 @@ export class FileUtils {
   }
 
   /**
+   * Reads everything from a given file and returns its content as a string
+   */
+  static async readFile(filePath: string): Promise<string> {
+    const root = FileUtils.rootDirectory();
+    return new Promise<string>(ok => {
+      fs.readFile(`${root}/${filePath}`, (err, data) =>
+        err ? ok() : ok(data.toString())
+      );
+    });
+  }
+
+  /**
    * HERE DOWN IS ONLY USED FOR TESTING OUTPUT (OUTPUT.JSON)
    */
   static createDirectories(directory: string) {

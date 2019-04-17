@@ -1,55 +1,54 @@
-import { FindUpdatedNodes } from "./FindUpdatedNodes";
-import { ReduceUpdatedNodes } from "./ReduceUpdatedNodes";
-import { ParseNodeRefs } from "../parse-new/reference-nodes/ParseNodeRefs";
-import { HandleParseNew } from "../parse-new/HandleParseNew";
-
-interface HandleParseUpdateReturn {
-  updated?: any;
-  added?: any;
-}
+import { JsonStream } from "./JsonStream";
+import { UpdatedNodeDiff } from "./UpdatedNodeDiff";
+import { FormatNodeUpdates } from "./FormatNodeUpdates";
 
 export class HandleParseUpdate {
-  addedFiles: string[];
-  modifiedFileLineDetail: any;
+  modifiedFiles: any;
 
-  constructor(addedFiles: string[], modifiedFileLineDetail: any) {
-    this.addedFiles = addedFiles;
-    this.modifiedFileLineDetail = modifiedFileLineDetail;
+  constructor(modifiedFiles: any) {
+    this.modifiedFiles = modifiedFiles;
   }
 
-  async run(): Promise<HandleParseUpdateReturn[]> {
+  private updateKey: any = {
+    E: "modified",
+    N: "added",
+    D: "removed"
+  };
+
+  async run(): Promise<[]> {
     try {
-      const results: any = [];
+      const updatedNodes: any = await new JsonStream(
+        this.modifiedFiles
+      ).newFile();
 
-      const updatedNodes = await new FindUpdatedNodes(
-        this.modifiedFileLineDetail
-      ).run();
+      const nodeDiffs: any = new UpdatedNodeDiff(this.modifiedFiles);
 
-      const { updateResults, updateRefIds } = new ReduceUpdatedNodes(
-        this.modifiedFileLineDetail,
-        updatedNodes
-      ).run();
+      const files: any = await Promise.all(updatedNodes.map(nodeDiffs.map));
 
-      results.push({ updated: updateResults });
+      const modified: any = files.map((file: any) => {
+        const nodes = updatedNodes.find((node: any) =>
+          node.originalName.includes(file.path)
+        );
 
-      if (updateRefIds.length > 0) {
-        const refs = await new ParseNodeRefs().run(updateRefIds);
+        const diffObj: any = { updates: [] };
+        diffObj.path = file.path;
 
-        // to do: similar to ParseNew, will need to append ref path to
-        // node if found
-      }
+        const fileUpdates = file.diffs.map((diff: any) => {
+          const nodeUpdates = new FormatNodeUpdates(diff, nodes);
+          const formattedUpdates = diff.path.reduce(nodeUpdates.reduce, {
+            query: [],
+            update: null
+          });
+          const kind = this.updateKey[diff.kind];
+          return { kind, ...formattedUpdates };
+        });
 
-      const addedResults: any = [];
-      if (this.addedFiles.length > 0) {
-        const results = await new HandleParseNew(this.addedFiles).run();
-        addedResults.push(...results);
-      }
+        diffObj.updates.push(fileUpdates);
 
-      if (addedResults.length > 0) {
-        results.push({ added: addedResults });
-      }
+        return diffObj;
+      });
 
-      return results;
+      return modified;
     } catch (err) {
       throw err;
     }

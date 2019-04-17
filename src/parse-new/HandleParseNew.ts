@@ -14,6 +14,10 @@ export class HandleParseNew {
     try {
       const results: any = [];
 
+      if (this.newFiles.length === 0) {
+        return results;
+      }
+
       const newNodes = await new FindNewNodes(this.newFiles).run();
 
       const { refIds, nodes } = await new ReduceNewNodes(

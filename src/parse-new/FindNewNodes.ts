@@ -58,7 +58,11 @@ export class FindNewNodes {
   async run(): Promise<[]> {
     try {
       ParserEvents.emitter("parser_new_find_nodes_begin", null);
-      return await new Stream("children.*").run(this.filter, this.event);
+      return await new Stream("children.*").many(
+        "new",
+        this.filter,
+        this.event
+      );
     } catch (err) {
       throw err;
     }

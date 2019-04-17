@@ -9,18 +9,10 @@ export class Stream {
     this.path = path;
   }
 
-  private static createStream() {
-    try {
-      return FileUtils.readStream(".undoc/docs.json");
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  run = async (filter: any, event?: any): Promise<any> => {
+  many = async (fileName: string, filter: any, event?: any): Promise<any> => {
     return new Promise((resolve: any, reject: any) => {
       const results: any = [];
-      const stream = Stream.createStream();
+      const stream = FileUtils.readStream(`.undoc/temp/${fileName}.json`);
       const through = through2.obj(filter);
       stream.pipe(JSONStream.parse(this.path)).pipe(through);
       through.on("data", data => {
@@ -30,6 +22,22 @@ export class Stream {
       through.on("end", () => {
         if (event) event("end");
         resolve(results);
+      });
+      through.on("error", err => reject(err));
+    });
+  };
+
+  one = async (fileName: string, filter: any, event?: any): Promise<any> => {
+    return new Promise((resolve: any, reject: any) => {
+      const stream = FileUtils.readStream(`.undoc/temp/${fileName}.json`);
+      const through = through2.obj(filter);
+      stream.pipe(JSONStream.parse(this.path)).pipe(through);
+      through.on("data", data => {
+        if (event) event("data", data);
+        if (data) resolve(data);
+      });
+      through.on("end", () => {
+        if (event) event("end");
       });
       through.on("error", err => reject(err));
     });
