@@ -1,4 +1,4 @@
-import { nodeKeys } from "../parse-tools/keys/nodeKeys";
+import { entityKeys } from "../parse-tools/keys/entityKeys";
 
 export class FormatNodeUpdates {
   diff: any;
@@ -9,65 +9,85 @@ export class FormatNodeUpdates {
     this.node = node;
   }
 
-  private entity: string | null = null;
+  private assignKeys = (entity: any, node: any) => {
+    const fields = entityKeys[entity];
+
+    return Object.keys(node).reduce((acc: any, prop: any) => {
+      const key = fields.find((f: any) => f[prop]);
+      const propIsString = typeof node[prop] === "string";
+
+      return key && propIsString
+        ? [...key[prop](node[prop], prop), ...acc]
+        : acc;
+    }, []);
+  };
 
   reduce = (acc: any, path: any, index: number, arr: any) => {
-    if (!this.entity) {
+    // Parse array by index
+    if (Number.isInteger(path)) {
       this.node = this.node[path];
-
-      if (!Number.isInteger(path)) {
-        this.entity = path;
-      }
-
       return acc;
     }
 
-    const lastItem: boolean = arr.length === index + 1;
-    const args = this.node;
-
-    const type =
-      args.type && typeof args.type === "string" ? args.type : undefined;
-
-    if (!Number.isInteger(path) && !lastItem) {
-      acc.query.push({
-        entity: this.entity,
-        args: { name: args.name, type, kind: args.kindString }
-      });
+    if (acc.entities.length === 0) {
+      acc.entities.push(path);
+      this.node = this.node[path];
+      return acc;
     }
 
-    if (lastItem) {
-      // deleted item
-      if (this.diff.kind === "D") {
-        return acc;
-      }
+    const lastEntity: string = acc.entities.slice(-1)[0];
 
-      const fields = nodeKeys[this.entity];
-      const updateObj: any = {};
+    acc.query.push({
+      entity: lastEntity,
+      args: this.assignKeys(lastEntity, this.node)
+    });
 
-      for (const prop in this.node) {
-        const key = fields.find((f: any) => f[prop]);
+    acc.entities.push(path);
 
-        if (key) {
-          key[prop](updateObj, this.node[prop], prop);
-        }
-      }
-
-      acc.update = { [this.entity]: updateObj };
-
-      // Add or update
+    if (arr.length === index + 1) {
       acc.query.push({
-        entity: this.entity,
-        args: { [path]: this.diff.lhs, type, kind: args.kindString }
+        entity: path,
+        args: this.diff.old
       });
-
-      return acc;
     }
 
     this.node = this.node[path];
 
-    if (!Number.isInteger(path)) {
-      this.entity = path;
-    }
+    // const args = this.assignKeys(lastEntity, this.node);
+
+    // const lastItem: boolean = arr.length === index + 1;
+
+    // if (lastItem) {
+    //   // deleted item
+    //   if (this.diff.kind === "D") {
+    //     return acc;
+    //   }
+
+    //   const lastEntity: string = acc.entities.slice(-1)[0];
+
+    //   acc.query.push({
+    //     entity: lastEntity,
+    //     args: this.diff.old
+    //   });
+
+    //   return acc;
+    // }
+
+    // if (Number.isInteger(path)) {
+    //   this.node = this.node[path];
+    //   return acc;
+    // }
+
+    // const lastEntity: string = acc.entities.slice(-1)[0];
+
+    // if (lastEntity) {
+    //   const args = this.assignKeys(lastEntity, this.node);
+
+    //   acc.query.push({
+    //     entity: lastEntity,
+    //     args
+    //   });
+    // }
 
     return acc;
   };

@@ -3,9 +3,9 @@ import {
   pathHelper,
   kindHelper,
   commentHelper
-} from "./helpers";
+} from "./entityKeyFormat";
 
-export const nodeKeys = <any>{
+export const entityKeys = <any>{
   files: [
     {
       name: keyFieldHelper,

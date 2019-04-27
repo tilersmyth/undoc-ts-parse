@@ -30,14 +30,64 @@ export class HandleParseUpdate {
           node.originalName.includes(file.path)
         );
 
-        const fileUpdates = file.diffs.map((diff: any) => {
+        // We do this to combine queries with the same path purposes of
+        // properly identifying the old node (and it's more effecient)
+        const formatQueries = file.diffs.reduce((acc: any, diff: any) => {
+          const updateKey = diff.path.pop();
+
+          //If query path ends with index number (as opposed to object key)
+          // we will remove it as we have already nailed down are target identifiers here
+          if (Number.isInteger(diff.path.slice(-1)[0])) {
+            diff.path.pop();
+          }
+
+          if (acc.length === 0) {
+            acc.push({
+              kind: diff.kind,
+              path: diff.path,
+              old: [{ key: updateKey, value: diff.lhs }],
+              new: [{ key: updateKey, value: diff.rhs }]
+            });
+            return acc;
+          }
+
+          // Check if query path already exists
+          const queryIndex: number = acc.findIndex(
+            (query: any) =>
+              JSON.stringify(query.path) === JSON.stringify(diff.path)
+          );
+
+          if (queryIndex < 0) {
+            acc.push({
+              kind: diff.kind,
+              path: diff.path,
+              old: [{ key: updateKey, value: diff.lhs }],
+              new: [{ key: updateKey, value: diff.rhs }]
+            });
+
+            return acc;
+          }
+
+          acc[queryIndex].old.push({ key: updateKey, value: diff.lhs });
+          acc[queryIndex].new.push({ key: updateKey, value: diff.rhs });
+          return acc;
+        }, []);
+
+        const fileUpdates = formatQueries.map((diff: any) => {
           const nodeUpdates = new FormatNodeUpdates(diff, nodes);
+
           const formattedUpdates = diff.path.reduce(nodeUpdates.reduce, {
             query: [],
-            update: null
+            entities: []
           });
+
           const kind = this.updateKey[diff.kind];
-          return { kind, ...formattedUpdates };
+
+          return {
+            kind,
+            query: formattedUpdates.query,
+            newNode: diff.new
+          };
         });
 
         return { path: file.path, updates: fileUpdates };
