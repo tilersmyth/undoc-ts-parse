@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "rimraf ./dist && tsc",
-    "local": "ts-node local.ts"
+    "local": "ts-node local/local.ts"
   },
   "author": {
     "name": "Tyler Smith",
@@ -27,6 +27,7 @@
     "@types/jsonstream": "^0.8.30",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.12.10",
+    "@types/rimraf": "^2.0.2",
     "@types/through2": "^2.0.34",
     "rimraf": "^2.6.2",
     "ts-node": "^7.0.1",

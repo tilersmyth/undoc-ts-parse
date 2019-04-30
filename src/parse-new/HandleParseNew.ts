@@ -1,5 +1,5 @@
-import { ReduceNewNodes } from "./ReduceNewNodes";
-import { FindNewNodes } from "./FindNewNodes";
+import { ParseNewFiles } from "./ParseNewFiles";
+import { JsonStream } from "./JsonStream";
 import { ParseNodeRefs } from "./reference-nodes/ParseNodeRefs";
 import { ReferenceResolver } from "./resolve-refs/ReferenceResolver";
 
@@ -12,32 +12,30 @@ export class HandleParseNew {
 
   async run(): Promise<[]> {
     try {
-      const results: any = [];
-
       if (this.newFiles.length === 0) {
-        return results;
+        return [];
       }
 
-      const newNodes = await new FindNewNodes(this.newFiles).run();
+      const newFiles = await new JsonStream(this.newFiles).newFiles();
 
-      const { refIds, nodes } = await new ReduceNewNodes(
-        "files",
-        newNodes
-      ).run();
+      const parseFiles = new ParseNewFiles();
 
-      results.push(...nodes);
-      //  refIds.push(...this.refIdsFromUpdatedNodes);
+      const { refIds, files } = newFiles.reduce(parseFiles.reduce, {
+        files: [],
+        refIds: [],
+        parent: "files"
+      });
 
       if (refIds.length > 0) {
         const refs = await new ParseNodeRefs().run(refIds);
 
-        results.push(...refs);
+        [...refs, ...files];
 
         // Resolve references (place reference path in owner)
-        new ReferenceResolver(results).run();
+        new ReferenceResolver(files).run();
       }
 
-      return results;
+      return files;
     } catch (err) {
       throw err;
     }

@@ -1,5 +1,5 @@
 import { FindNodeRefs } from "./FindNodeRefs";
-import { ReduceNewNodes } from "../ReduceNewNodes";
+import { ParseNewFiles } from "../ParseNewFiles";
 
 import ParserEvents from "../../Events";
 
@@ -16,28 +16,28 @@ export class ParseNodeRefs {
       if (newRefIds.length === 0) {
         return [];
       }
-
       ParserEvents.emitter(
         "parser_ref_find_nodes",
         `Searching for ${newRefIds.length} node reference${
           newRefIds.length > 1 ? "s" : ""
         }`
       );
-
       const nodes = await new FindNodeRefs(newRefIds).run();
-      const reducedNodes = await new ReduceNewNodes("files", nodes).run();
 
-      this.results.push(...reducedNodes.nodes);
+      const parseFiles = new ParseNewFiles();
+
+      const { refIds, files } = nodes.reduce(parseFiles.reduce, {
+        files: [],
+        refIds: [],
+        parent: "files"
+      });
+
+      this.results.push(...files);
       this.refIds.push(...newRefIds);
-
-      const newRefs = reducedNodes.refIds.filter(
-        (r: any) => this.refIds.indexOf(r) === -1
-      );
-
+      const newRefs = refIds.filter((r: any) => this.refIds.indexOf(r) === -1);
       if (newRefs.length > 0) {
         await this.run(newRefs);
       }
-
       return this.results;
     } catch (err) {
       throw err;

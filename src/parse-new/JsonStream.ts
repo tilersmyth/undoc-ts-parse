@@ -4,11 +4,11 @@ import ParserEvents from "../Events";
 /**
  * Find nodes in generated TypeDoc file
  */
-export class FindNewNodes {
-  newFiles: string[];
+export class JsonStream {
+  addedFiles: string[];
 
-  constructor(newFiles: string[]) {
-    this.newFiles = newFiles;
+  constructor(addedFiles: string[]) {
+    this.addedFiles = addedFiles;
   }
 
   private isNewFile(row: any): boolean {
@@ -16,7 +16,7 @@ export class FindNewNodes {
       return true;
     }
 
-    return this.newFiles.some((filePath: any) =>
+    return this.addedFiles.some((filePath: any) =>
       row.originalName.includes(filePath)
     );
   }
@@ -55,14 +55,16 @@ export class FindNewNodes {
     }
   };
 
-  async run(): Promise<[]> {
+  async newFiles(): Promise<[]> {
     try {
       ParserEvents.emitter("parser_new_find_nodes_begin", null);
-      return await new Stream("children.*").many(
+      const files = await new Stream("children.*").many(
         "new",
         this.filter,
         this.event
       );
+
+      return files;
     } catch (err) {
       throw err;
     }
