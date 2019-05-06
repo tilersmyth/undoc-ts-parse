@@ -1,43 +1,33 @@
-import { HandleParseNew } from "./parse-new/HandleParseNew";
-import { HandleParseUpdate } from "./parse-update/HandleParseUpdate";
-
 import ParserEvents from "./Events";
+import { FileParser } from "./parser/FileParser";
 
-export const parseNew = async (
+interface ModifiedFile {
+  path: string;
+  oldOid: string;
+}
+
+interface ParserFiles {
+  tracked: string[];
+  added: string[];
+  modified: ModifiedFile[];
+}
+
+export const parse = async (
   undocEventEmitter: any,
-  newFiles: string[]
-): Promise<[]> => {
-  try {
-    ParserEvents.emitter = undocEventEmitter;
-
-    ParserEvents.emitter(
-      "parser_init",
-      "Looking for tagged modules in TypeDoc JSON"
-    );
-
-    return await new HandleParseNew(newFiles).run();
-  } catch (err) {
-    throw err;
-  }
-};
-
-export const parseUpdate = async (
-  undocEventEmitter: any,
-  addedFiles: string[],
-  modifiedFiles: any
+  files: ParserFiles
 ): Promise<{}> => {
   try {
     ParserEvents.emitter = undocEventEmitter;
 
-    ParserEvents.emitter(
-      "parser_init",
-      "Searching for modified nodes in TypeDoc JSON"
-    );
+    const parser = new FileParser(files);
 
-    const added = await new HandleParseNew(addedFiles).run();
-    const modified = await new HandleParseUpdate(modifiedFiles).run();
+    const added = await parser.added();
 
-    return { added, modified };
+    const modified: any = await parser.modified();
+
+    const results: any = await parser.referenced(added, modified);
+
+    return results;
   } catch (err) {
     throw err;
   }

@@ -1,10 +1,10 @@
-import { Stream } from "../parse-tools";
-import ParserEvents from "../Events";
+import { Stream } from "../tools";
+import ParserEvents from "../../Events";
 
 /**
  * Find nodes in generated TypeDoc file
  */
-export class JsonStream {
+export class AddedFileStream {
   addedFiles: string[];
 
   constructor(addedFiles: string[]) {

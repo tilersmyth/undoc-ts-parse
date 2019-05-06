@@ -1,11 +1,11 @@
-import { Stream } from "../parse-tools";
+import { Stream } from "../tools";
 
-import ParserEvents from "../Events";
+import ParserEvents from "../../Events";
 
 /**
  * Find nodes by originalName to locate node updates
  */
-export class JsonStream {
+export class ModifiedJsonStream {
   files: any;
   stream: Stream;
 

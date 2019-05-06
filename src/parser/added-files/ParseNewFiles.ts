@@ -1,10 +1,10 @@
-import { EntityFields } from "../parse-tools";
+import { EntityFields } from "../tools";
 
 export class ParseNewFiles {
   entityFields: EntityFields;
 
-  constructor() {
-    this.entityFields = new EntityFields(false);
+  constructor(entityFields: EntityFields) {
+    this.entityFields = entityFields;
   }
 
   private filterDupeRefIds = (idArr: number[], id: number) => {

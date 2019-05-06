@@ -1,6 +1,6 @@
 import * as deepDiff from "deep-diff";
 
-import { JsonStream } from "./JsonStream";
+import { ModifiedJsonStream } from "./JsonStream";
 
 export class UpdatedNodeDiff {
   modifiedFiles: any;
@@ -16,11 +16,6 @@ export class UpdatedNodeDiff {
     "extendedBy"
   ];
 
-  private nodeFilter = (oid: string, row: any, _: any, cb: any) => {
-    const filter = row.originalName.includes(oid);
-    cb(null, filter && row);
-  };
-
   private diffFilter = (path: any, key: any) => {
     return (
       (path.length === 0 && key === "name") || this.ignoreKeys.includes(key)
@@ -32,7 +27,7 @@ export class UpdatedNodeDiff {
       node.originalName.includes(file.path)
     );
 
-    const stream = new JsonStream(modifiedFile);
+    const stream = new ModifiedJsonStream(modifiedFile);
     const content = await stream.oldFile();
 
     const nodeDiffs = deepDiff.diff(content, node, this.diffFilter);
