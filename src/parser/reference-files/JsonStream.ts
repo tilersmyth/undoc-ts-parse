@@ -1,13 +1,14 @@
 import { Stream } from "../tools";
-import ParserEvents from "../../Events";
+import { StreamEvents } from "../Events";
 
 /**
  * Find types referenced in modules
  */
-export class NodeRefStream {
+export class NodeRefStream extends StreamEvents {
   trackedFiles: string[];
 
   constructor(trackedFiles: string[]) {
+    super();
     this.trackedFiles = trackedFiles;
   }
 
@@ -42,25 +43,12 @@ export class NodeRefStream {
     cb(null, row);
   };
 
-  private event = (type: string, data?: any): void => {
-    if (type === "data") {
-      ParserEvents.emitter("parser_ref_new_node_found", data);
-      return;
-    }
-
-    if (type === "end") {
-      ParserEvents.emitter("parser_ref_new_node_end", data);
-      return;
-    }
-  };
-
   async search(refIds: number[]): Promise<{ files: []; refs: {} }> {
     try {
-      ParserEvents.emitter("parser_ref_new_node_begin", null);
       const files = await new Stream("children.*").many(
         "new",
         this.filter.bind(null, refIds),
-        this.event
+        this.addRef
       );
 
       return { files, refs: this.refIdPaths };

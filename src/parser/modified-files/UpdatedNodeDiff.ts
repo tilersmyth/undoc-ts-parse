@@ -1,10 +1,8 @@
 import * as deepDiff from "deep-diff";
 
-import { ModifiedJsonStream } from "./JsonStream";
-
 export class UpdatedNodeDiff {
-  modifiedFiles: any;
-  constructor(modifiedFiles: any) {
+  constructor(private stream: any, private modifiedFiles: any) {
+    this.stream = stream;
     this.modifiedFiles = modifiedFiles;
   }
 
@@ -22,15 +20,22 @@ export class UpdatedNodeDiff {
     );
   };
 
-  map = async (node: any) => {
+  current = async () => {
+    return this.stream.newFile(this.modifiedFiles);
+  };
+
+  compare = async (node: any) => {
     const modifiedFile = this.modifiedFiles.find((file: any) =>
       node.originalName.includes(file.path)
     );
 
-    const stream = new ModifiedJsonStream(modifiedFile);
-    const content = await stream.oldFile();
+    const content = await this.stream.oldFile(modifiedFile);
 
     const nodeDiffs = deepDiff.diff(content, node, this.diffFilter);
+
+    if (nodeDiffs) {
+      this.stream.modNode("data", nodeDiffs.length);
+    }
 
     return { path: modifiedFile.path, diffs: nodeDiffs };
   };

@@ -12,7 +12,9 @@ export class ParseNodeRefs extends NodeRefStream {
 
   private filterRefs = (id: number) => !this.oldRefIds.includes(id);
 
-  find = async (newRefIds: number[]): Promise<{ files: []; refs: {} }> => {
+  private recursive = async (
+    newRefIds: number[]
+  ): Promise<{ files: []; refs: {} }> => {
     if (newRefIds.length === 0) {
       return { files: [], refs: {} };
     }
@@ -36,9 +38,18 @@ export class ParseNodeRefs extends NodeRefStream {
     const refsToFind: number[] = refIds.filter(this.filterRefs);
 
     if (refsToFind.length > 0) {
-      await this.find(refsToFind);
+      await this.recursive(refsToFind);
     }
 
     return { files: this.referenceFiles, refs: refNodes.refs };
+  };
+
+  find = async (newRefIds: number[]) => {
+    const find = await this.recursive(newRefIds);
+
+    // End stream here - after recursive search has finished
+    this.addRef("stop");
+
+    return find;
   };
 }

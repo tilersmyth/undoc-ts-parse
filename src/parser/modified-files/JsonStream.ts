@@ -1,55 +1,51 @@
 import { Stream } from "../tools";
-
-import ParserEvents from "../../Events";
+import { StreamEvents } from "../Events";
 
 /**
  * Find nodes by originalName to locate node updates
  */
-export class ModifiedJsonStream {
-  files: any;
+export class ModifiedJsonStream extends StreamEvents {
   stream: Stream;
 
-  constructor(files: any) {
-    this.files = files;
+  constructor() {
+    super();
     this.stream = new Stream("children.*");
   }
 
-  private newFilter = (row: any, _: any, cb: any) => {
-    const filter = this.files.find((update: any) =>
+  private newFilter = (files: any, row: any, _: any, cb: any) => {
+    const filter = files.find((update: any) =>
       row.originalName.includes(update.path)
     );
 
     cb(null, filter && row);
   };
 
-  private oldFilter = (row: any, _: any, cb: any) => {
-    const filter = row.originalName.includes(this.files.oldOid);
+  private oldFilter = (files: any, row: any, _: any, cb: any) => {
+    const filter = row.originalName.includes(files.oldOid);
     cb(null, filter && row);
   };
 
-  private newEvent = (type: string, data?: any): void => {
-    if (type === "data") {
-      ParserEvents.emitter("parser_update_file_node_found", data);
-      return;
-    }
-
-    if (type === "end") {
-      ParserEvents.emitter("parser_update_find_file_nodes_end", data);
-      return;
-    }
-  };
-
-  async newFile(): Promise<[]> {
+  async newFile(files: any): Promise<[]> {
     try {
-      return await this.stream.many("new", this.newFilter, this.newEvent);
+      const result = await this.stream.many(
+        "new",
+        this.newFilter.bind(null, files)
+      );
+
+      return result;
     } catch (err) {
       throw err;
     }
   }
 
-  async oldFile(): Promise<[]> {
+  async oldFile(files: any): Promise<[]> {
     try {
-      return await this.stream.one("old", this.oldFilter);
+      const result = await this.stream.one(
+        "old",
+        this.oldFilter.bind(null, files)
+      );
+
+      return result;
     } catch (err) {
       throw err;
     }

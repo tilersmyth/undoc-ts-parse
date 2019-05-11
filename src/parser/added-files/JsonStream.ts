@@ -1,13 +1,14 @@
 import { Stream } from "../tools";
-import ParserEvents from "../../Events";
+import { StreamEvents } from "../Events";
 
 /**
  * Find nodes in generated TypeDoc file
  */
-export class AddedFileStream {
+export class AddedFileStream extends StreamEvents {
   addedFiles: string[];
 
   constructor(addedFiles: string[]) {
+    super();
     this.addedFiles = addedFiles;
   }
 
@@ -43,26 +44,15 @@ export class AddedFileStream {
     return;
   };
 
-  private event = (type: string, data?: any): void => {
-    if (type === "data") {
-      ParserEvents.emitter("parser_new_node_found", data);
-      return;
-    }
-
-    if (type === "end") {
-      ParserEvents.emitter("parser_new_find_nodes_end", data);
-      return;
-    }
-  };
-
   async newFiles(): Promise<[]> {
     try {
-      ParserEvents.emitter("parser_new_find_nodes_begin", null);
       const files = await new Stream("children.*").many(
         "new",
         this.filter,
-        this.event
+        this.addModule
       );
+
+      this.addModule("stop");
 
       return files;
     } catch (err) {
