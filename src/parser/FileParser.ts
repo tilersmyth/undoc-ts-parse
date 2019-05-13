@@ -11,7 +11,7 @@ import { FileUtils } from "./tools/FileUtils";
 
 interface ModifiedFile {
   path: string;
-  oldOid: string;
+  oldPath: string;
 }
 
 interface ParserFiles {

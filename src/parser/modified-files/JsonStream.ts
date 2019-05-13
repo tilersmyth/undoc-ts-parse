@@ -21,7 +21,7 @@ export class ModifiedJsonStream extends StreamEvents {
   };
 
   private oldFilter = (files: any, row: any, _: any, cb: any) => {
-    const filter = row.originalName.includes(files.oldOid);
+    const filter = row.originalName.includes(files.oldPath);
     cb(null, filter && row);
   };
 

@@ -4,7 +4,7 @@ import { AssignRefsAndClean } from "./parser/reference-files/AssignRefsAndClean"
 
 interface ModifiedFile {
   path: string;
-  oldOid: string;
+  oldPath: string;
 }
 
 interface ParserFiles {
