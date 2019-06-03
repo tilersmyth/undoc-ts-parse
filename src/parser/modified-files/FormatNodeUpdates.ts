@@ -14,9 +14,9 @@ export class FormatNodeUpdates {
   };
 
   private assignKeys = (entity: any, node: any) => {
-    const entityFields = new EntityFields(true);
+    const entityFields = new EntityFields("args");
 
-    const fields = entityFields.format()[entity];
+    const fields: any = entityFields.format(entity);
 
     return Object.keys(node).reduce((acc: any, prop: any) => {
       const key = fields[prop];
@@ -27,9 +27,9 @@ export class FormatNodeUpdates {
   };
 
   private targetNodeKeys = (entity: any, node: any) => {
-    const entityFields = new EntityFields(false, true);
+    const entityFields = new EntityFields("update");
 
-    const fields = entityFields.format()[entity];
+    const fields: any = entityFields.format(entity);
 
     return Object.keys(node).reduce((acc: any, prop: any) => {
       const key = fields[prop];
@@ -67,6 +67,10 @@ export class FormatNodeUpdates {
 
     if (lastPath) {
       const targetEntity: string = Number.isInteger(path) ? lastEntity : path;
+
+      // if (this.diff.kind === "A") {
+      // console.log(this.diff);
+      // }
 
       acc.query.push({
         entity: targetEntity,

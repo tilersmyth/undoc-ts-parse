@@ -1,6 +1,5 @@
 import { NodeRefStream } from "./JsonStream";
 import { ParseNewFiles } from "../added-files/ParseNewFiles";
-import { EntityFields } from "../tools/keys/EntityFields";
 
 export class ParseNodeRefs extends NodeRefStream {
   constructor(trackedFiles: string[]) {
@@ -21,10 +20,9 @@ export class ParseNodeRefs extends NodeRefStream {
 
     const refNodes = await this.search(newRefIds);
 
-    const entityFields = new EntityFields(false, true);
-    const parseFiles = new ParseNewFiles(entityFields);
+    const parseFiles = new ParseNewFiles();
 
-    const { refIds, files } = refNodes.files.reduce(parseFiles.reduce, {
+    const { refIds, files } = refNodes.files.reduce(parseFiles.files, {
       files: [],
       refIds: [],
       parent: "files"

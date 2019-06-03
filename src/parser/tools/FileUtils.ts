@@ -44,19 +44,19 @@ export class FileUtils {
     );
   }
 
+  /**
+   * Creates a file with the given content in the given path
+   */
   static async createFile(
+    filePath: string,
     content: string,
     override: boolean = true
-  ): Promise<void> {
-    await FileUtils.createDirectories(path.dirname(".undoc/output.json"));
-    return new Promise<void>((ok, fail) => {
-      const root = FileUtils.rootDirectory();
-      if (override === false && fs.existsSync(`${root}/.undoc/output.json`))
-        return ok();
+  ): Promise<string> {
+    await FileUtils.createDirectories(path.dirname(filePath));
+    return new Promise<string>((ok, fail) => {
+      if (override === false && fs.existsSync(filePath)) return ok(filePath);
 
-      fs.writeFile(`${root}/.undoc/output.json`, content, err =>
-        err ? fail(err) : ok()
-      );
+      fs.writeFile(filePath, content, err => (err ? fail(err) : ok(filePath)));
     });
   }
 }

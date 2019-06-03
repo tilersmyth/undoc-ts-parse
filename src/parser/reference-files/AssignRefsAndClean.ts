@@ -43,26 +43,21 @@ export class AssignRefsAndClean {
       return;
     }
 
-    const updates = file.updates.map((update: any) => {
-      const node = update.newNode;
+    const query = file.query.map((query: any) => {
+      if (query.update && query.update.type !== "deleted") {
+        const { node } = query.update;
 
-      const newNode = Object.keys(node).reduce((acc: any, prop: any) => {
-        if (prop !== "id") {
-          return [{ key: prop, value: node[prop] }, ...acc];
-        }
+        query.update.node = Object.keys(node).reduce((acc: any, prop: any) => {
+          return { [prop]: this.added(prop, node[prop]), ...acc };
+        }, {});
+      }
 
-        const reference = this.refs[node[prop]];
-
-        if (reference) {
-          return [{ key: file, value: reference.file }, ...acc];
-        }
-
-        return acc;
-      }, []);
-
-      return { ...update, newNode };
+      return query;
     });
 
-    return { ...file, updates };
+    return {
+      ...file,
+      query
+    };
   };
 }

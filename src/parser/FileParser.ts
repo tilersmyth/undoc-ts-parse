@@ -1,13 +1,8 @@
-import { EntityFields } from "./tools/keys/EntityFields";
 import { AddedFileStream } from "./added-files/JsonStream";
 import { ParseNewFiles } from "./added-files/ParseNewFiles";
 import { ModifiedJsonStream } from "./modified-files/JsonStream";
 import { UpdatedNodeDiff } from "./modified-files/UpdatedNodeDiff";
-import { CompileUpdates } from "./modified-files/CompileUpdates";
 import { ParseNodeRefs } from "./reference-files/ParseNodeRefs";
-import { AssignRefsAndClean } from "./reference-files/AssignRefsAndClean";
-
-import { FileUtils } from "./tools/FileUtils";
 
 interface ModifiedFile {
   path: string;
@@ -40,10 +35,8 @@ export class FileParser {
 
     const taggedFiles = await new AddedFileStream(added).newFiles();
 
-    const entityFields = new EntityFields(false, true);
-    const parseFiles = new ParseNewFiles(entityFields);
-
-    return taggedFiles.reduce(parseFiles.reduce, {
+    const parseFiles = new ParseNewFiles();
+    return taggedFiles.reduce(parseFiles.files, {
       files: [],
       refIds: [],
       parent: "files"
@@ -57,32 +50,27 @@ export class FileParser {
       return { files: [], refIds: [] };
     }
 
-    // Find updated nodes in current form
     const modifiedJsonStream = new ModifiedJsonStream();
 
     const fileDiffs: any = new UpdatedNodeDiff(modifiedJsonStream, modified);
-    const currentNodes = await fileDiffs.current();
 
-    const fileUpdates: any = await Promise.all(
-      currentNodes.map(fileDiffs.compare)
-    );
+    // Find updated nodes to compare
+    const newNodes = await modifiedJsonStream.newFile(modified);
 
-    const compileUpdates = new CompileUpdates();
-
-    const files = fileUpdates.reduce(
-      compileUpdates.reduce.bind(null, currentNodes),
-      { updates: [], refIds: [] }
+    const diffs: any = await newNodes.reduce(
+      fileDiffs.compare,
+      Promise.resolve({ files: [], refIds: [] })
     );
 
     modifiedJsonStream.modNode("stop", 0);
 
-    return { files: files.updates, refIds: files.refIds };
+    return diffs;
   };
 
   references = async (
     added: any,
     modified: any
-  ): Promise<{ files: []; refs: {} } | null> => {
+  ): Promise<{ files: []; refs: {} }> => {
     // Ensure modified refIds are unique (dupes already removed from added files)
     const modifiedRefIds = modified.refIds.filter(
       (refId: number) => !added.refIds.includes(refId)
@@ -91,7 +79,7 @@ export class FileParser {
     const refIds = [...modifiedRefIds, ...added.refIds];
 
     if (refIds.length === 0) {
-      return null;
+      return { files: [], refs: {} };
     }
 
     const parseNodeRefs = new ParseNodeRefs(this.files.tracked);
