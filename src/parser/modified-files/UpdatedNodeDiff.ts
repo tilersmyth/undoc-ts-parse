@@ -8,7 +8,7 @@ export class UpdatedNodeDiff {
     this.files = files;
   }
 
-  private ignoreKeys = [
+  private ignoreKeys: string[] = [
     "originalName",
     "id",
     "sources",
@@ -16,21 +16,17 @@ export class UpdatedNodeDiff {
     "extendedBy"
   ];
 
-  private objectHash = (obj: any) => {
-    if (typeof obj.kind !== "undefined") {
-      return obj.kind;
-    }
+  private hashKeys: string[] = ["kind", "name", "comment"];
 
-    if (typeof obj.type === "string") {
-      return obj.type;
-    }
-
-    if (typeof obj.name !== "undefined") {
-      return obj.name;
-    }
-
-    return JSON.stringify(obj);
-  };
+  private objectHash = (obj: any) =>
+    JSON.stringify(
+      Object.keys(obj).reduce((acc: any, prop: any) => {
+        return this.hashKeys.includes(prop) ||
+          (prop === "type" && typeof obj[prop] === "string")
+          ? [{ [prop]: obj[prop] }, ...acc]
+          : acc;
+      }, [])
+    );
 
   private propertyFilter = (key: string, context: any) => {
     // Ignore file name as these are intentionally different

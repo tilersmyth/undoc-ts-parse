@@ -1,6 +1,6 @@
 import * as shortid from "shortid";
 
-import { EntityFields, FileUtils } from "../tools";
+import { EntityFields } from "../tools";
 import { ParseNodeFields } from "../tools/ParseNodeFields";
 
 export class FormatDiff {
@@ -71,10 +71,6 @@ export class FormatDiff {
 
               const args = this.assignArgKeys(parent.entity, nodes);
 
-              if (!isNaN(k)) {
-                args.push({ key: "position", value: k });
-              }
-
               const targetParent = {
                 ...parent,
                 id: shortid.generate(),
@@ -84,6 +80,10 @@ export class FormatDiff {
                   node: null
                 }
               };
+
+              if (!isNaN(k)) {
+                targetParent.position = k;
+              }
 
               // handle nodes added or modified
               if (update.node) {
@@ -112,7 +112,11 @@ export class FormatDiff {
               // dont technically exist yet.. So we make the object easily
               // identifiable so we can add it child on next iteration
               if (update.type === "added") {
-                acc.query = [...acc.query, { update: targetParent.update }];
+                const position = !isNaN(k) ? k : null;
+                acc.query = [
+                  ...acc.query,
+                  { position, update: targetParent.update }
+                ];
                 return acc;
               }
 
@@ -128,7 +132,8 @@ export class FormatDiff {
               const arrayParent = {
                 ...parent,
                 id: `${parent.id}${k}`,
-                args: [{ key: "position", value: k }, ...args]
+                position: k,
+                args
               };
 
               const formatter = this.format(v, node, arrayParent);
