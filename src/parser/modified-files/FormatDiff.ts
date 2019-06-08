@@ -28,30 +28,38 @@ export class FormatDiff {
 
   private updateType = (key: any, value: any) => {
     try {
-      const updateSize = value.length;
+      const size = value.length;
 
-      switch (updateSize) {
-        case 1:
-          return {
-            index: 0,
-            type: "added",
-            node: isNaN(key) ? { [key]: value[0] } : value[0]
-          };
-        case 2:
-          return {
-            index: 1,
-            type: "modified",
-            node: isNaN(key) ? { [key]: value[1] } : value[1]
-          };
-        case 3:
-          return {
-            index: -1,
-            type: "deleted",
-            node: null
-          };
-        default:
-          throw Error("Unrecognized node update type");
+      if (size === 1) {
+        return {
+          type: "added",
+          node: isNaN(key) ? { [key]: value[0] } : value[0]
+        };
       }
+
+      if (size === 2) {
+        return {
+          type: "modified",
+          node: isNaN(key) ? { [key]: value[1] } : value[1]
+        };
+      }
+
+      if (size === 3) {
+        // Position move - modified
+        if (value[0] === "") {
+          return {
+            type: "modified",
+            node: { position: value[1] }
+          };
+        }
+
+        return {
+          type: "deleted",
+          node: null
+        };
+      }
+
+      throw Error("Unrecognized node update type");
     } catch (err) {
       throw err;
     }
@@ -69,7 +77,11 @@ export class FormatDiff {
             if (v instanceof Array) {
               const update = this.updateType(k, v);
 
-              const args = this.assignArgKeys(parent.entity, nodes);
+              const arrMove = k.startsWith("_");
+              const key = arrMove ? k.slice(1) : k;
+              const node = arrMove ? nodes[`${key}`] : nodes;
+
+              const args = this.assignArgKeys(parent.entity, node);
 
               const targetParent = {
                 ...parent,
@@ -81,8 +93,8 @@ export class FormatDiff {
                 }
               };
 
-              if (!isNaN(k)) {
-                targetParent.position = k;
+              if (!isNaN(key)) {
+                targetParent.position = key;
               }
 
               // handle nodes added or modified
@@ -93,6 +105,7 @@ export class FormatDiff {
                 // To do: if node empty and it is only update in query then remove
                 // query
                 if (Object.keys(parsedNode.keys).length === 0) {
+                  console.log("to do: update node is empty");
                   return acc;
                 }
 
