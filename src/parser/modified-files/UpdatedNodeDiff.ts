@@ -18,15 +18,21 @@ export class UpdatedNodeDiff {
 
   private hashKeys: string[] = ["kind", "name", "comment"];
 
-  private objectHash = (obj: any) =>
-    JSON.stringify(
+  private objectHash = (obj: any) => {
+    return JSON.stringify(
       Object.keys(obj).reduce((acc: any, prop: any) => {
+        if (obj[prop] instanceof Array && !this.ignoreKeys.includes(prop)) {
+          // Include array key just to give more detail
+          return [{ [prop]: [] }, ...acc];
+        }
+
         return this.hashKeys.includes(prop) ||
           (prop === "type" && typeof obj[prop] === "string")
           ? [{ [prop]: obj[prop] }, ...acc]
           : acc;
       }, [])
     );
+  };
 
   private propertyFilter = (key: string, context: any) => {
     // Ignore file name as these are intentionally different

@@ -97,6 +97,15 @@ export class FormatDiff {
                 targetParent.position = key;
               }
 
+              // If deletion, handle first
+              // In the case where a "modify" has been identified as a "delete/add"
+              // by diff we need to make sure delete occurs first or incorrect node
+              // could get updated
+              if (update.type === "deleted") {
+                acc.query = [targetParent, ...acc.query];
+                return acc;
+              }
+
               // handle nodes added or modified
               if (update.node) {
                 const parser = new ParseNodeFields("new");
@@ -121,19 +130,7 @@ export class FormatDiff {
               // Event here to ensure false-positive update is not included
               this.stream.modNode("data", 1);
 
-              // Added nodes should not have their own query object as they
-              // dont technically exist yet.. So we make the object easily
-              // identifiable so we can add it child on next iteration
-              if (update.type === "added") {
-                const position = !isNaN(k) ? k : null;
-                acc.query = [
-                  ...acc.query,
-                  { position, update: targetParent.update }
-                ];
-                return acc;
-              }
-
-              acc.query = [...acc.query, targetParent];
+              acc.query = [targetParent, ...acc.query];
               return acc;
             }
 
@@ -168,18 +165,6 @@ export class FormatDiff {
             const formatter = this.format(v, node, objectParent);
 
             acc.refIds = [...formatter.refIds];
-
-            // If last update is type "added" then append it to child as update
-            // and remove place holder object
-            const isAddedUpdate =
-              formatter.query[0].update && !formatter.query[0].id
-                ? formatter.query[0].update
-                : null;
-
-            if (isAddedUpdate) {
-              formatter.query.splice(0, 1);
-              parent.update = isAddedUpdate;
-            }
 
             acc.query = parent.parent
               ? [...acc.query, parent, ...formatter.query]

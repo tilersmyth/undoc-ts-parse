@@ -68,10 +68,6 @@ export class FormatNodeUpdates {
     if (lastPath) {
       const targetEntity: string = Number.isInteger(path) ? lastEntity : path;
 
-      // if (this.diff.kind === "A") {
-      // console.log(this.diff);
-      // }
-
       acc.query.push({
         entity: targetEntity,
         args: this.diff.old
